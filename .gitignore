@@ -1,0 +1,7 @@
+# Build artifacts
+dist/
+*.zip
+
+# Local environment
+.DS_Store
+*.log

@@ -1,0 +1,84 @@
+/* Curly Events — front-end styles (consolidated from the shortcode output). */
+
+.evt-list-wrapper {
+	--color-dark: #2b2b2b;
+	--color-dark-hover: #000;
+	--color-mid: #0d8f80;
+	--color-mid-hover: #076b69;
+	--color-light-hover: #95c7c1;
+	--color-light: #c3e3df;
+	--color-white: #fff;
+	--color-light-neutral: #d1d1d1;
+	color: var(--color-dark);
+}
+.evt-item {
+	border-left: 4px solid var(--color-mid);
+	background: var(--color-white);
+	padding: 12px 16px;
+	margin-bottom: 15px;
+	border-radius: 0 4px 4px 0;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.evt-item h4 { margin: 0 0 6px 0; font-size: 1.1em; }
+.evt-item h4 a { color: var(--color-dark); text-decoration: none; }
+.evt-item h4 a:hover { color: var(--color-mid-hover); }
+.evt-meta-line { font-size: 0.9em; color: var(--color-dark); margin-bottom: 6px; }
+.evt-location-box { font-size: 0.85em; background: var(--color-light); padding: 8px 12px; border-radius: 4px; margin-top: 6px; }
+.evt-fallback-heading { color: var(--color-dark); margin-bottom: 15px; }
+
+.evt-cal-wrapper {
+	--color-dark: #2b2b2b;
+	--color-dark-hover: #000;
+	--color-mid: #0d8f80;
+	--color-mid-hover: #076b69;
+	--color-light-hover: #95c7c1;
+	--color-light: #c3e3df;
+	--color-white: #fff;
+	--color-light-neutral: #d1d1d1;
+	font-family: inherit;
+	color: var(--color-dark);
+}
+.evt-cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.evt-cal-header h2 { margin: 0; color: var(--color-dark); }
+.evt-cal-btn {
+	background: var(--color-mid);
+	color: var(--color-white);
+	padding: 6px 14px;
+	text-decoration: none;
+	border-radius: 4px;
+	font-size: 0.9em;
+	transition: background 0.2s ease;
+}
+.evt-cal-btn:hover { background: var(--color-mid-hover); color: var(--color-white); }
+.evt-cal-grid {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 1px;
+	background: var(--color-light-neutral);
+	border: 1px solid var(--color-light-neutral);
+	border-radius: 4px;
+	overflow: hidden;
+}
+.evt-cal-day-head { background: var(--color-light); color: var(--color-dark); padding: 10px; text-align: center; font-weight: bold; font-size: 0.85em; }
+.evt-cal-cell { background: var(--color-white); min-height: 100px; padding: 6px; box-sizing: border-box; }
+.evt-cal-cell.other-month { background: #fafafa; opacity: 0.45; }
+.evt-cal-date-num { font-weight: bold; font-size: 0.85em; margin-bottom: 6px; color: var(--color-dark); }
+.evt-cal-event-link {
+	display: block;
+	font-size: 0.75em;
+	padding: 3px 6px;
+	background: var(--color-light);
+	color: var(--color-dark);
+	text-decoration: none;
+	border-radius: 3px;
+	margin-bottom: 3px;
+	transition: background 0.2s ease;
+}
+.evt-cal-event-link:hover { background: var(--color-light-hover); color: var(--color-dark-hover); }
+.evt-cal-time { font-size: 0.9em; opacity: 0.8; margin-right: 3px; }
+
+.evt-pagination { margin-top: 2rem; font-size: 1rem; }
+.evt-pagination .page-numbers { margin-right: 0.75rem; white-space: nowrap; }
+.evt-pagination a.page-numbers { text-decoration: underline; color: #2b2b2b; }
+.evt-pagination a.page-numbers:hover { color: #0d8f80; }
+.evt-pagination .page-numbers.current { font-weight: 700; text-decoration: none; }
