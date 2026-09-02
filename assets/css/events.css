@@ -63,6 +63,6 @@
 
 .evt-pagination { margin-top: 2rem; font-size: 1rem; }
 .evt-pagination .page-numbers { margin-right: 0.75rem; white-space: nowrap; }
-.evt-pagination a.page-numbers { text-decoration: underline; color: #2b2b2b; }
-.evt-pagination a.page-numbers:hover { color: #0d8f80; }
+.evt-pagination a.page-numbers { text-decoration: underline; color: var(--color-dark); }
+.evt-pagination a.page-numbers:hover { color: var(--color-mid); }
 .evt-pagination .page-numbers.current { font-weight: 700; text-decoration: none; }
