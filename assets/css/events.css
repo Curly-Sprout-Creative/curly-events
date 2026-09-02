@@ -1,14 +1,6 @@
 /* Curly Events — front-end styles (consolidated from the shortcode output). */
 
 .evt-list-wrapper {
-	--color-dark: #2b2b2b;
-	--color-dark-hover: #000;
-	--color-mid: #0d8f80;
-	--color-mid-hover: #076b69;
-	--color-light-hover: #95c7c1;
-	--color-light: #c3e3df;
-	--color-white: #fff;
-	--color-light-neutral: #d1d1d1;
 	color: var(--color-dark);
 }
 .evt-item {
@@ -27,14 +19,6 @@
 .evt-fallback-heading { color: var(--color-dark); margin-bottom: 15px; }
 
 .evt-cal-wrapper {
-	--color-dark: #2b2b2b;
-	--color-dark-hover: #000;
-	--color-mid: #0d8f80;
-	--color-mid-hover: #076b69;
-	--color-light-hover: #95c7c1;
-	--color-light: #c3e3df;
-	--color-white: #fff;
-	--color-light-neutral: #d1d1d1;
 	font-family: inherit;
 	color: var(--color-dark);
 }

@@ -3,7 +3,7 @@
  * Plugin Name:       Curly Events
  * Plugin URI:        https://github.com/Curly-Sprout-Creative/curly-events
  * Description:       Custom "events" post type with native meta boxes, recurrence (weekly/monthly/none), virtual occurrence engine, [event_list] / [event_calendar] / [event_pagination] shortcodes, and an Oxygen 6 Post Loop bridge. Requires Oxygen 6 built with the documented Events Post Loop wiring.
- * Version:           1.0.0
+ * Version:           1.0.1
  * Author:            Curly Sprout Creative
  * License:           GPL-2.0-or-later
  * Text Domain:       curly-events
