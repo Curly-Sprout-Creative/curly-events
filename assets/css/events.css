@@ -61,8 +61,61 @@
 .evt-cal-event-link:hover { background: var(--color-light-hover); color: var(--color-dark-hover); }
 .evt-cal-time { font-size: 0.9em; opacity: 0.8; margin-right: 3px; }
 
+/* Empty-month / empty-window notice (mirrors the Curly Linseed calendar). */
+.evt-cal-notice {
+	background: var(--color-light);
+	color: var(--color-dark);
+	padding: 12px 16px;
+	margin-bottom: 15px;
+	border-radius: 4px;
+}
+.evt-cal-notice p { margin: 0 0 8px 0; }
+.evt-cal-notice p:last-child { margin-bottom: 0; }
+.evt-cal-notice .evt-cal-btn { display: inline-block; margin-top: 4px; }
+
+/*
+ * Mobile agenda — hidden on desktop where the grid is shown instead.
+ * Days with events only; the current month rolls today through +30 days.
+ */
+.evt-cal-agenda { display: none; }
+.evt-agenda-day {
+	background: var(--color-white);
+	border-left: 4px solid var(--color-mid);
+	border-radius: 0 4px 4px 0;
+	padding: 12px 16px;
+	margin-bottom: 12px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.evt-agenda-date { font-weight: 700; font-size: 0.95em; color: var(--color-dark); margin-bottom: 8px; }
+.evt-agenda-event {
+	display: block;
+	background: var(--color-light);
+	color: var(--color-dark);
+	text-decoration: none;
+	border-radius: 3px;
+	padding: 8px 10px;
+	margin-bottom: 5px;
+	overflow-wrap: anywhere;
+	transition: background 0.2s ease;
+}
+.evt-agenda-event:last-child { margin-bottom: 0; }
+.evt-agenda-event:hover { background: var(--color-light-hover); color: var(--color-dark-hover); }
+.evt-agenda-time { font-weight: 600; margin-right: 6px; }
+.evt-agenda-title { font-weight: 500; }
+
 .evt-pagination { margin-top: 2rem; font-size: 1rem; }
 .evt-pagination .page-numbers { margin-right: 0.75rem; white-space: nowrap; }
 .evt-pagination a.page-numbers { text-decoration: underline; color: var(--color-dark); }
 .evt-pagination a.page-numbers:hover { color: var(--color-mid); }
 .evt-pagination .page-numbers.current { font-weight: 700; text-decoration: none; }
+
+/* Responsive: stacked agenda under 768px (desktop grid unchanged). */
+@media (max-width: 768px) {
+	.evt-cal-grid { display: none; }
+	.evt-cal-wrapper > .evt-cal-notice { display: none; }
+	.evt-cal-agenda { display: block; }
+
+	.evt-cal-header { margin-bottom: 12px; }
+	.evt-cal-header h2 { font-size: 1.1em; }
+	.evt-cal-btn { padding: 6px 10px; font-size: 0.85em; }
+}

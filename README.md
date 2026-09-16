@@ -42,10 +42,36 @@ loop-based card grid won't render.
   trash, untrash, or delete — so the archive/loop expansion does not run a
   `posts_per_page=-1` query on every page load.
 - Shortcodes: `[event_list limit="5"]`, `[event_calendar]`, `[event_pagination]`.
+- **Responsive mobile agenda**: under 768px the month grid is replaced by a
+  stacked, day-by-day agenda showing only days with events (never blank days).
+  The current month rolls `today → +30 days` (spilling into the following
+  month); any other month shows its own event days. Prev/Next keep navigating
+  months in both views.
+- **Empty-month notice**: a month with no events shows a notice above the grid
+  with a jump button to the nearest month that has events (ahead preferred, else
+  behind), mirroring the Linseed calendar. When a month has nothing upcoming at
+  all, the message points to the email list on `/contact/` (overridable via the
+  `curly_events_contact_url` filter). The mobile agenda does the same for an
+  empty window, linking to the next (or most recent) event.
 - **Loop bridge**: `the_posts` expansion → one virtual post per occurrence;
   `get_post_metadata` serves the reserved `_event_occurrence_*` keys. Opt out
   per-query with `virtual_events` => 'off'.
 - Calendar REST endpoint with clamped month/year and cheap cached recurrence.
+
+## Changelog
+
+### 1.1.0
+- **Mobile agenda (under 768px):** the calendar grid is replaced by a stacked,
+  day-by-day agenda. Only days with events are shown. The current month rolls
+  `today → +30 days`; other months show their own event days. Prev/Next month
+  navigation is retained in the agenda view.
+- **Empty-month notice:** months with no events show a notice with a
+  **Jump to {Month}** button to the nearest month with events (ahead preferred,
+  else behind); when nothing is upcoming, the notice links to `/contact/`
+  (filterable via `curly_events_contact_url`). Empty mobile-agenda windows link
+  to the next, or most recent, event.
+- Desktop grid, AJAX month swap, `[event_list]`, and the loop bridge are
+  unchanged; no JavaScript changes were required.
 
 ## Structure
 

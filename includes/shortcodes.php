@@ -151,6 +151,9 @@ function custom_events_render_calendar( $req_month, $req_year ) {
 	$prev_url      = add_query_arg( array( 'cal_m' => $prev_date->format( 'n' ), 'cal_y' => $prev_date->format( 'Y' ) ), $calendar_base );
 	$next_url      = add_query_arg( array( 'cal_m' => $next_date->format( 'n' ), 'cal_y' => $next_date->format( 'Y' ) ), $calendar_base );
 
+	$notice = custom_events_render_notice( $req_month, $req_year );
+	$agenda = custom_events_render_agenda( $req_month, $req_year );
+
 	ob_start();
 	?>
 	<div class="evt-cal-wrapper">
@@ -159,6 +162,8 @@ function custom_events_render_calendar( $req_month, $req_year ) {
 			<h2><?php echo $current_date->format( 'F Y' ); ?></h2>
 			<a class="evt-cal-btn cal-nav" href="<?php echo esc_url( $next_url ); ?>" data-cal-m="<?php echo $next_date->format( 'n' ); ?>" data-cal-y="<?php echo $next_date->format( 'Y' ); ?>">Next &raquo;</a>
 		</div>
+
+		<?php echo $notice; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
 		<div class="evt-cal-grid">
 			<div class="evt-cal-day-head">Sun</div>
@@ -196,6 +201,272 @@ function custom_events_render_calendar( $req_month, $req_year ) {
 			}
 			?>
 		</div>
+
+		<?php echo $agenda; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+	</div>
+	<?php
+	return ob_get_clean();
+}
+
+/**
+ * Broad occurrence index used by the calendar notices.
+ *
+ * Covers the 180-day recent-past fallback through the 3-year horizon, so a
+ * single cached occurrence window answers "does this month have events?" and
+ * "what is the next / most recent event?". Memoized per request on top of the
+ * recurrence engine's transient cache.
+ *
+ * @return array[] Occurrences sorted by date, then start time.
+ */
+function custom_events_occurrence_index() {
+	static $index = null;
+	if ( null !== $index ) {
+		return $index;
+	}
+
+	$start = date( 'Y-m-d', strtotime( '-180 days', current_time( 'timestamp' ) ) );
+	$index = get_virtual_event_occurrences( $start, custom_events_virtual_horizon_end() );
+	if ( ! is_array( $index ) ) {
+		$index = array();
+	}
+
+	return $index;
+}
+
+/**
+ * Contact page URL for the "no upcoming events" message.
+ *
+ * Defaults to /contact/ on the current site; override per site via filter.
+ *
+ * @return string
+ */
+function custom_events_contact_url() {
+	return apply_filters( 'curly_events_contact_url', home_url( '/contact/' ) );
+}
+
+/**
+ * First indexed occurrence strictly after a date, or null.
+ *
+ * @param string $date Y-m-d.
+ * @return array|null
+ */
+function custom_events_next_occurrence_after( $date ) {
+	foreach ( custom_events_occurrence_index() as $occ ) {
+		if ( strcmp( $occ['date'], $date ) > 0 ) {
+			return $occ;
+		}
+	}
+	return null;
+}
+
+/**
+ * Most recent indexed occurrence strictly before a date, or null.
+ *
+ * @param string $date Y-m-d.
+ * @return array|null
+ */
+function custom_events_previous_occurrence_before( $date ) {
+	$found = null;
+	foreach ( custom_events_occurrence_index() as $occ ) {
+		if ( strcmp( $occ['date'], $date ) < 0 ) {
+			$found = $occ;
+		}
+	}
+	return $found;
+}
+
+/**
+ * Months that contain at least one indexed occurrence, keyed by Y-m.
+ *
+ * @return array[] Each entry: first (Y-m-d), last (Y-m-d), count.
+ */
+function custom_events_months_with_events() {
+	$months = array();
+	foreach ( custom_events_occurrence_index() as $occ ) {
+		$mk = substr( $occ['date'], 0, 7 );
+		if ( ! isset( $months[ $mk ] ) ) {
+			$months[ $mk ] = array( 'first' => $occ['date'], 'last' => $occ['date'], 'count' => 0 );
+		}
+		if ( strcmp( $occ['date'], $months[ $mk ]['first'] ) < 0 ) {
+			$months[ $mk ]['first'] = $occ['date'];
+		}
+		if ( strcmp( $occ['date'], $months[ $mk ]['last'] ) > 0 ) {
+			$months[ $mk ]['last'] = $occ['date'];
+		}
+		$months[ $mk ]['count']++;
+	}
+	ksort( $months );
+	return $months;
+}
+
+/**
+ * Empty-month notice for the desktop grid.
+ *
+ * Returns '' when the displayed month has events. Otherwise points to the
+ * nearest month ahead (preferred) or behind with events, or the final
+ * no-upcoming-events message. Mirrors the Curly Linseed calendar notice.
+ *
+ * @param int $req_month 1-12.
+ * @param int $req_year  4-digit year.
+ * @return string
+ */
+function custom_events_render_notice( $req_month, $req_year ) {
+	$month_key = sprintf( '%04d-%02d', $req_year, $req_month );
+	$months    = custom_events_months_with_events();
+
+	if ( ! empty( $months[ $month_key ]['count'] ) ) {
+		return '';
+	}
+
+	$forward  = '';
+	$backward = '';
+	foreach ( array_keys( $months ) as $mk ) {
+		if ( strcmp( $mk, $month_key ) > 0 && ( '' === $forward || strcmp( $mk, $forward ) < 0 ) ) {
+			$forward = $mk;
+		}
+		if ( strcmp( $mk, $month_key ) < 0 && ( '' === $backward || strcmp( $mk, $backward ) > 0 ) ) {
+			$backward = $mk;
+		}
+	}
+
+	$month_label   = date( 'F Y', strtotime( $month_key . '-01' ) );
+	$calendar_base = get_post_type_archive_link( 'events' ) ?: home_url( '/events/' );
+
+	ob_start();
+	?>
+	<div class="evt-cal-notice">
+		<?php if ( '' !== $forward ) :
+			$target       = $months[ $forward ];
+			$f_month      = (int) substr( $forward, 5, 2 );
+			$f_year       = (int) substr( $forward, 0, 4 );
+			$jump_url     = add_query_arg( array( 'cal_m' => $f_month, 'cal_y' => $f_year ), $calendar_base );
+			$date_label   = custom_events_format_date( $target['first'] );
+			$target_month = date( 'F', strtotime( $forward . '-01' ) );
+			?>
+			<p><?php echo esc_html( sprintf( 'No events scheduled in %s — the next events start %s.', $month_label, $date_label ) ); ?></p>
+			<a class="evt-cal-btn cal-nav" href="<?php echo esc_url( $jump_url ); ?>" data-cal-m="<?php echo esc_attr( $f_month ); ?>" data-cal-y="<?php echo esc_attr( $f_year ); ?>">Jump to <?php echo esc_html( $target_month ); ?> &raquo;</a>
+		<?php elseif ( '' !== $backward ) :
+			$b_month        = (int) substr( $backward, 5, 2 );
+			$b_year         = (int) substr( $backward, 0, 4 );
+			$jump_url       = add_query_arg( array( 'cal_m' => $b_month, 'cal_y' => $b_year ), $calendar_base );
+			$target_month   = date( 'F Y', strtotime( $backward . '-01' ) );
+			?>
+			<p><?php echo esc_html( sprintf( 'No events scheduled in %s — the most recent events were in %s.', $month_label, $target_month ) ); ?></p>
+			<a class="evt-cal-btn cal-nav" href="<?php echo esc_url( $jump_url ); ?>" data-cal-m="<?php echo esc_attr( $b_month ); ?>" data-cal-y="<?php echo esc_attr( $b_year ); ?>">Jump back to <?php echo esc_html( date( 'F', strtotime( $backward . '-01' ) ) ); ?> &raquo;</a>
+		<?php else : ?>
+			<p>There are no upcoming events scheduled at the moment.</p>
+			<p>Stay tuned — <a href="<?php echo esc_url( custom_events_contact_url() ); ?>">sign up for our email list on the Contact page</a>.</p>
+		<?php endif; ?>
+	</div>
+	<?php
+	return ob_get_clean();
+}
+
+/**
+ * Mobile agenda: stacked, day-by-day list for the displayed month.
+ *
+ * The current month uses a rolling window of today through +30 days (so it
+ * spills into the following month); any other month shows only that month's
+ * days. Only days with events are rendered - never blank days.
+ *
+ * @param int $req_month 1-12.
+ * @param int $req_year  4-digit year.
+ * @return string
+ */
+function custom_events_render_agenda( $req_month, $req_year ) {
+	$is_current = ( (int) $req_month === (int) current_time( 'n' ) && (int) $req_year === (int) current_time( 'Y' ) );
+
+	if ( $is_current ) {
+		$range_start = current_time( 'Y-m-d' );
+		$end_date    = date_create( $range_start, wp_timezone() );
+		$end_date->modify( '+30 days' );
+		$range_end = $end_date->format( 'Y-m-d' );
+	} else {
+		$first       = new DateTime( sprintf( '%04d-%02d-01', $req_year, $req_month ) );
+		$range_start = $first->format( 'Y-m-d' );
+		$range_end   = $first->modify( 'last day of this month' )->format( 'Y-m-d' );
+	}
+
+	$occurrences = get_virtual_event_occurrences( $range_start, $range_end );
+
+	$by_date = array();
+	foreach ( $occurrences as $occ ) {
+		$by_date[ $occ['date'] ][] = $occ;
+	}
+
+	ob_start();
+	?>
+	<div class="evt-cal-agenda">
+		<?php if ( ! empty( $by_date ) ) : ?>
+			<?php foreach ( $by_date as $d_str => $day_occurrences ) : ?>
+				<div class="evt-agenda-day">
+					<div class="evt-agenda-date"><?php echo esc_html( date( 'l, F j', strtotime( $d_str ) ) ); ?></div>
+					<?php
+					foreach ( $day_occurrences as $occ ) :
+						$time = '';
+						if ( ! empty( $occ['start_time'] ) && '00:00' !== $occ['start_time'] ) {
+							$time = date( 'g:i A', strtotime( $occ['start_time'] ) );
+						}
+						if ( ! empty( $occ['end_time_text'] ) ) {
+							$time = '' !== $time ? $time . ' – ' . $occ['end_time_text'] : $occ['end_time_text'];
+						}
+						?>
+						<a class="evt-agenda-event" href="<?php echo esc_url( $occ['permalink'] ); ?>">
+							<?php if ( '' !== $time ) : ?><span class="evt-agenda-time"><?php echo esc_html( $time ); ?></span><?php endif; ?>
+							<span class="evt-agenda-title"><?php echo esc_html( $occ['title'] ); ?></span>
+						</a>
+					<?php endforeach; ?>
+				</div>
+			<?php endforeach; ?>
+		<?php else : ?>
+			<?php echo custom_events_render_agenda_empty( $is_current, $req_month, $req_year, $range_start, $range_end ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+		<?php endif; ?>
+	</div>
+	<?php
+	return ob_get_clean();
+}
+
+/**
+ * Notice shown in the mobile agenda when its window has no events.
+ *
+ * Links to the next event after the window, else the most recent event before
+ * it, else the final no-upcoming-events message.
+ *
+ * @param bool   $is_current  Whether the agenda is the rolling current window.
+ * @param int    $req_month   Displayed month 1-12.
+ * @param int    $req_year    Displayed 4-digit year.
+ * @param string $range_start Window start Y-m-d.
+ * @param string $range_end   Window end Y-m-d.
+ * @return string
+ */
+function custom_events_render_agenda_empty( $is_current, $req_month, $req_year, $range_start, $range_end ) {
+	if ( $is_current ) {
+		$lead = 'No events in the next 30 days.';
+	} else {
+		$lead = sprintf( 'No events scheduled in %s.', date( 'F Y', strtotime( sprintf( '%04d-%02d-01', $req_year, $req_month ) ) ) );
+	}
+
+	ob_start();
+	?>
+	<div class="evt-cal-notice">
+		<?php
+		$next = custom_events_next_occurrence_after( $range_end );
+		if ( $next ) :
+			?>
+			<p><?php echo esc_html( $lead . ' The next event is ' . $next['title'] . ' on ' . custom_events_format_date( $next['date'] ) . '.' ); ?></p>
+			<a class="evt-cal-btn" href="<?php echo esc_url( $next['permalink'] ); ?>">View event &raquo;</a>
+		<?php else :
+			$recent = custom_events_previous_occurrence_before( $range_start );
+			if ( $recent ) :
+				?>
+				<p><?php echo esc_html( $lead . ' The most recent event was ' . $recent['title'] . ' on ' . custom_events_format_date( $recent['date'] ) . '.' ); ?></p>
+				<a class="evt-cal-btn" href="<?php echo esc_url( $recent['permalink'] ); ?>">View event &raquo;</a>
+			<?php else : ?>
+				<p>There are no upcoming events scheduled at the moment.</p>
+				<p>Stay tuned — <a href="<?php echo esc_url( custom_events_contact_url() ); ?>">sign up for our email list on the Contact page</a>.</p>
+			<?php endif;
+		endif;
+		?>
 	</div>
 	<?php
 	return ob_get_clean();
