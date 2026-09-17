@@ -97,7 +97,7 @@ function custom_events_render_meta_box( $post ) {
 				'media_buttons' => false,
 				'textarea_rows' => 4,
 				'teeny'         => true,
-				'quicktags'     => false,
+				'quicktags'     => true,
 			)
 		);
 		?>
