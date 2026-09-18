@@ -77,15 +77,43 @@ post_type=events&event_category=physical-culture&virtual_events=off
 - **Empty-month notice**: a month with no events shows a notice above the grid
   with a jump button to the nearest month that has events (ahead preferred, else
   behind), mirroring the Linseed calendar. When a month has nothing upcoming at
-  all, the message points to the email list on `/contact/` (overridable via the
-  `curly_events_contact_url` filter). The mobile agenda does the same for an
-  empty window, linking to the next (or most recent) event.
+  all, the message links to the contact URL set under **Events > Settings**
+  (defaults to `/contact/`). The mobile agenda does the same for an empty window,
+  linking to the next (or most recent) event.
+- **Settings (Events > Settings):** contact link URL + link text, and a
+  "open the calendar on page load" switch (default on). The calendar toggle
+  itself is an Oxygen element (`.calendar-toggle` / `.calendar-toggle-wrap`);
+  the plugin drives its open/close state and lazy month loading.
 - **Loop bridge**: `the_posts` expansion → one virtual post per occurrence;
   `get_post_metadata` serves the reserved `_event_occurrence_*` keys. Opt out
   per-query with `virtual_events` => 'off'.
 - Calendar REST endpoint with clamped month/year and cheap cached recurrence.
 
+## Settings
+
+**Events > Settings** (Administrators and Editors — `edit_pages`):
+
+| Setting | Option | Notes |
+|---|---|---|
+| Contact link | `curly_events_contact_url` | Used in the "no upcoming events" notice. Blank → `home_url('/contact/')`. |
+| Contact link text | `curly_events_contact_text` | Anchor text; blank → `sign up for our email list on the Contact page`. |
+| Open the calendar on page load | `curly_events_calendar_open` | Boolean, default on. When on, `events.js` opens `.calendar-toggle-wrap` (adds `is-open`) and loads the month on `DOMContentLoaded`. |
+
+Both contact values are also overridable in code via the
+`curly_events_contact_url` / `curly_events_contact_text` filters.
+
 ## Changelog
+
+### 1.3.0
+- **Events > Settings page** (`edit_pages`, so admins and editors): contact link
+  URL + link text (replaces the hard-coded `/contact/` and phrase), and a
+  calendar "open on page load" switch (default on).
+- **Calendar default state:** when enabled, `events.js` auto-opens the calendar
+  toggle on load. The `curlyEvents` config is now emitted as real JSON via
+  `wp_add_inline_script` so `calendarOpen` is a boolean (`wp_localize_script`
+  stringifies booleans).
+- Contact link/text remain filterable (`curly_events_contact_url`,
+  `curly_events_contact_text`).
 
 ### 1.2.0
 - **Event categories:** new hierarchical `event_category` taxonomy for the
@@ -126,6 +154,7 @@ curly-events/
 │   ├── cpt.php                   # "events" post type
 │   ├── taxonomy.php              # "event_category" taxonomy
 │   ├── admin.php                 # Meta box + save handler
+│   ├── settings.php             # Events > Settings (contact link, calendar default)
 │   ├── recurrence.php            # Virtual recurrence engine (transient-cached)
 │   ├── shortcodes.php            # [event_list] [event_calendar] [event_pagination]
 │   ├── loop-bridge.php           # the_posts / pre_get_posts / get_post_metadata

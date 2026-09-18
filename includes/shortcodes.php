@@ -236,12 +236,33 @@ function custom_events_occurrence_index() {
 /**
  * Contact page URL for the "no upcoming events" message.
  *
- * Defaults to /contact/ on the current site; override per site via filter.
+ * Uses the Events > Settings value when set, else /contact/ on the current
+ * site. Overridable in code via the `curly_events_contact_url` filter.
  *
  * @return string
  */
 function custom_events_contact_url() {
-	return apply_filters( 'curly_events_contact_url', home_url( '/contact/' ) );
+	$url = (string) get_option( CURLY_EVENTS_OPTION_CONTACT_URL, '' );
+	if ( '' === trim( $url ) ) {
+		$url = home_url( '/contact/' );
+	}
+	return apply_filters( 'curly_events_contact_url', $url );
+}
+
+/**
+ * Anchor text for the "no upcoming events" contact link.
+ *
+ * Uses the Events > Settings value when set, else the default phrase.
+ * Overridable in code via the `curly_events_contact_text` filter.
+ *
+ * @return string
+ */
+function custom_events_contact_text() {
+	$text = (string) get_option( CURLY_EVENTS_OPTION_CONTACT_TEXT, CURLY_EVENTS_DEFAULT_CONTACT_TEXT );
+	if ( '' === trim( $text ) ) {
+		$text = CURLY_EVENTS_DEFAULT_CONTACT_TEXT;
+	}
+	return apply_filters( 'curly_events_contact_text', $text );
 }
 
 /**
@@ -355,7 +376,7 @@ function custom_events_render_notice( $req_month, $req_year ) {
 			<a class="evt-cal-btn cal-nav" href="<?php echo esc_url( $jump_url ); ?>" data-cal-m="<?php echo esc_attr( $b_month ); ?>" data-cal-y="<?php echo esc_attr( $b_year ); ?>">Jump back to <?php echo esc_html( date( 'F', strtotime( $backward . '-01' ) ) ); ?> &raquo;</a>
 		<?php else : ?>
 			<p>There are no upcoming events scheduled at the moment.</p>
-			<p>Stay tuned — <a href="<?php echo esc_url( custom_events_contact_url() ); ?>">sign up for our email list on the Contact page</a>.</p>
+			<p>Stay tuned — <a href="<?php echo esc_url( custom_events_contact_url() ); ?>"><?php echo esc_html( custom_events_contact_text() ); ?></a>.</p>
 		<?php endif; ?>
 	</div>
 	<?php
@@ -463,7 +484,7 @@ function custom_events_render_agenda_empty( $is_current, $req_month, $req_year, 
 				<a class="evt-cal-btn" href="<?php echo esc_url( $recent['permalink'] ); ?>">View event &raquo;</a>
 			<?php else : ?>
 				<p>There are no upcoming events scheduled at the moment.</p>
-				<p>Stay tuned — <a href="<?php echo esc_url( custom_events_contact_url() ); ?>">sign up for our email list on the Contact page</a>.</p>
+				<p>Stay tuned — <a href="<?php echo esc_url( custom_events_contact_url() ); ?>"><?php echo esc_html( custom_events_contact_text() ); ?></a>.</p>
 			<?php endif;
 		endif;
 		?>

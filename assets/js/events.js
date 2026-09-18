@@ -66,20 +66,24 @@
 			});
 		}
 
+		function openCalendar() {
+			if (wrap.classList.contains('is-open')) return;
+			if (!loaded) {
+				var dm = defaultMonth();
+				fetchCalendar(dm.m, dm.y, function (html) {
+					wrap.innerHTML = html;
+					loaded = true;
+					bindNav(wrap);
+				});
+			}
+			setState(true);
+		}
+
 		toggle.addEventListener('click', function () {
-			var open = wrap.classList.contains('is-open');
-			if (!open) {
-				if (!loaded) {
-					var dm = defaultMonth();
-					fetchCalendar(dm.m, dm.y, function (html) {
-						wrap.innerHTML = html;
-						loaded = true;
-						bindNav(wrap);
-					});
-				}
-				setState(true);
-			} else {
+			if (wrap.classList.contains('is-open')) {
 				setState(false);
+			} else {
+				openCalendar();
 			}
 		});
 
@@ -89,6 +93,11 @@
 		toggle.addEventListener('keydown', function (e) {
 			if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle.click(); }
 		});
+
+		// Events > Settings: open the calendar automatically on page load.
+		if (cfg.calendarOpen) {
+			openCalendar();
+		}
 	}
 
 	/**

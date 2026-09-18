@@ -81,12 +81,17 @@ function custom_events_maybe_enqueue_assets() {
 		true
 	);
 
-	wp_localize_script(
+	// Pass real booleans to the JS: wp_localize_script stringifies booleans to
+	// ""/"1", which breaks strict comparisons in events.js.
+	wp_add_inline_script(
 		'curly-events',
-		'curlyEvents',
-		array(
-			'restUrl' => esc_url_raw( rest_url( 'curly-events/v1/calendar' ) ),
-		)
+		'window.curlyEvents = ' . wp_json_encode(
+			array(
+				'restUrl'      => esc_url_raw( rest_url( 'curly-events/v1/calendar' ) ),
+				'calendarOpen' => (bool) get_option( CURLY_EVENTS_OPTION_CALENDAR_OPEN, 1 ),
+			)
+		) . ';',
+		'before'
 	);
 }
 
