@@ -98,11 +98,26 @@ post_type=events&event_category=physical-culture&virtual_events=off
 | Contact link | `curly_events_contact_url` | Used in the "no upcoming events" notice. Blank → `home_url('/contact/')`. |
 | Contact link text | `curly_events_contact_text` | Anchor text; blank → `sign up for our email list on the Contact page`. |
 | Open the calendar on page load | `curly_events_calendar_open` | Boolean, default on. When on, `events.js` opens `.calendar-toggle-wrap` (adds `is-open`) and loads the month on `DOMContentLoaded`. |
+| Add schema.org Event data to event pages | `curly_events_schema_enabled` | Boolean, default on. Prints an `Event` entity (date, time, venue, recurrence, image) on single event pages. Also filterable per event via `custom_events_event_schema` (return `null` to suppress). |
 
 Both contact values are also overridable in code via the
 `curly_events_contact_url` / `curly_events_contact_text` filters.
 
 ## Changelog
+
+### 1.4.0
+- **Event structured data (schema.org):** single event pages now print an
+  `Event` entity built from the same stored meta the recurrence engine uses, so
+  the markup cannot drift from the page: name, `startDate` (the **next**
+  occurrence when one exists, else the series start), `endDate` (parsed from the
+  free-text end time when it is a real time), `location` (venue name, plus the
+  address reused from Curly Site Tools' LocalBusiness settings when filled in),
+  `image`, `description`, `organizer`, and — for repeating events — an
+  `eventSchedule` (`P1W` + `byDay` for weekly, `P1M` + `byMonthDay` for monthly).
+- **Settings:** new "Add schema.org Event data to event pages" checkbox under
+  **Events > Settings** (`curly_events_schema_enabled`, default on), plus the
+  `custom_events_event_schema` filter for per-event control.
+- No change to the query layer, shortcodes, REST endpoint, or reserved meta keys.
 
 ### 1.3.0
 - **Events > Settings page** (`edit_pages`, so admins and editors): contact link
@@ -158,7 +173,8 @@ curly-events/
 │   ├── recurrence.php            # Virtual recurrence engine (transient-cached)
 │   ├── shortcodes.php            # [event_list] [event_calendar] [event_pagination]
 │   ├── loop-bridge.php           # the_posts / pre_get_posts / get_post_metadata
-│   └── rest.php                  # Calendar REST endpoint + asset enqueue
+│   ├── rest.php                  # Calendar REST endpoint + asset enqueue
+│   └── schema.php                # schema.org Event entity on single events
 └── vendor/plugin-update-checker/ # YahnisElsts/plugin-update-checker v5.7
 ```
 

@@ -19,6 +19,7 @@ define( 'CURLY_EVENTS_SETTINGS_GROUP', 'curly_events_settings' );
 define( 'CURLY_EVENTS_OPTION_CONTACT_URL', 'curly_events_contact_url' );
 define( 'CURLY_EVENTS_OPTION_CONTACT_TEXT', 'curly_events_contact_text' );
 define( 'CURLY_EVENTS_OPTION_CALENDAR_OPEN', 'curly_events_calendar_open' );
+define( 'CURLY_EVENTS_OPTION_SCHEMA_ENABLED', 'curly_events_schema_enabled' );
 define( 'CURLY_EVENTS_DEFAULT_CONTACT_TEXT', 'sign up for our email list on the Contact page' );
 
 add_action( 'admin_menu', 'custom_events_register_settings_page' );
@@ -71,6 +72,16 @@ function custom_events_register_settings() {
 			'default'           => 1,
 		)
 	);
+
+	register_setting(
+		CURLY_EVENTS_SETTINGS_GROUP,
+		CURLY_EVENTS_OPTION_SCHEMA_ENABLED,
+		array(
+			'type'              => 'boolean',
+			'sanitize_callback' => 'rest_sanitize_boolean',
+			'default'           => 1,
+		)
+	);
 }
 
 /**
@@ -84,6 +95,7 @@ function custom_events_render_settings_page() {
 	$contact_url   = (string) get_option( CURLY_EVENTS_OPTION_CONTACT_URL, '' );
 	$contact_text  = (string) get_option( CURLY_EVENTS_OPTION_CONTACT_TEXT, CURLY_EVENTS_DEFAULT_CONTACT_TEXT );
 	$calendar_open = (int) get_option( CURLY_EVENTS_OPTION_CALENDAR_OPEN, 1 );
+	$schema_on     = (int) get_option( CURLY_EVENTS_OPTION_SCHEMA_ENABLED, 1 );
 	$default_url   = home_url( '/contact/' );
 	?>
 	<div class="wrap">
@@ -127,6 +139,19 @@ function custom_events_render_settings_page() {
 						</label>
 						<p class="description">
 							<?php esc_html_e( 'When checked, the calendar opens automatically where the .calendar-toggle / .calendar-toggle-wrap elements are used. Uncheck to start closed (click to open).', 'curly-events' ); ?>
+						</p>
+					</td>
+				</tr>
+				<tr valign="top">
+					<th scope="row"><?php esc_html_e( 'Structured data', 'curly-events' ); ?></th>
+					<td>
+						<input type="hidden" name="<?php echo esc_attr( CURLY_EVENTS_OPTION_SCHEMA_ENABLED ); ?>" value="0" />
+						<label for="<?php echo esc_attr( CURLY_EVENTS_OPTION_SCHEMA_ENABLED ); ?>">
+							<input type="checkbox" id="<?php echo esc_attr( CURLY_EVENTS_OPTION_SCHEMA_ENABLED ); ?>" name="<?php echo esc_attr( CURLY_EVENTS_OPTION_SCHEMA_ENABLED ); ?>" value="1" <?php checked( 1, $schema_on ); ?> />
+							<?php esc_html_e( 'Add schema.org Event data to event pages', 'curly-events' ); ?>
+						</label>
+						<p class="description">
+							<?php esc_html_e( 'Prints an Event entity (date, time, venue, recurrence) on single event pages so search engines can show class listings as rich results. The venue street address is reused from Curly Site Tools\' LocalBusiness settings when they are filled in.', 'curly-events' ); ?>
 						</p>
 					</td>
 				</tr>
